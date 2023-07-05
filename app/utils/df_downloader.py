@@ -1,8 +1,10 @@
-import pandas as pd
 import base64
+from datetime import datetime
 from io import BytesIO
-from pyxlsb import open_workbook as open_xlsb
+
+import pandas as pd
 import streamlit as st
+from pyxlsb import open_workbook as open_xlsb
 
 
 """
@@ -20,8 +22,12 @@ def to_csv(df: pd.DataFrame):
     file_binary = df.to_csv(index=False)
     # strings <-> bytes conversions
     b64 = base64.b64encode(file_binary.encode()).decode()
+    now = datetime.now()
+    # convert to desired format
+    formatted_now = now.strftime("%Y-%m-%d_%H%M%S")
+
     st.download_button(label='Download CSV File', data=file_binary,
-                       file_name='playerstats.csv', mime='text/csv')
+                       file_name=f'btc-traffic-analysis_{formatted_now}.csv', mime='text/csv')
 
 
 def to_excel(df):
@@ -34,8 +40,11 @@ def to_excel(df):
     worksheet.set_column('A:A', None, format1)
     writer.close()
     processed_data = output.getvalue()
+    now = datetime.now()
+    # convert to desired format
+    formatted_now = now.strftime("%Y-%m-%d_%H%M%S")
 
     df_xlsx = processed_data
     st.download_button(label='📥 Download Excel File',
                        data=df_xlsx,
-                       file_name='df_test.xlsx')
+                       file_name=f'btc-traffic-analysis_{formatted_now}.xlsx')
