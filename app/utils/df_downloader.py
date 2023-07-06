@@ -18,15 +18,18 @@ from pyxlsb import open_workbook as open_xlsb
 # TODO: 파일 바이너리 포팅과 컴포턴트 렌더링을 분리해야 한다.
 
 
-def to_csv(df: pd.DataFrame):
+@st.cache_data(show_spinner='다운로드 가능한 파일을 생성중입니다.')
+def generate_csv_binary(df: pd.DataFrame):
     file_binary = df.to_csv(index=False)
     # strings <-> bytes conversions
     b64 = base64.b64encode(file_binary.encode()).decode()
-    now = datetime.now()
-    # convert to desired format
-    formatted_now = now.strftime("%Y-%m-%d_%H%M%S")
+    return file_binary
 
-    st.download_button(label='Download CSV File', data=file_binary,
+
+def to_csv(df: pd.DataFrame):
+    now = datetime.now()
+    formatted_now = now.strftime("%Y-%m-%d_%H%M%S")
+    st.download_button(label='데이터 다운로드', data=generate_csv_binary(df),
                        file_name=f'btc-traffic-analysis_{formatted_now}.csv', mime='text/csv')
 
 
