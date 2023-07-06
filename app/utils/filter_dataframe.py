@@ -1,66 +1,61 @@
-from pandas.api.types import (
-    is_categorical_dtype,
-    is_datetime64_any_dtype,
-    is_numeric_dtype,
-    is_object_dtype,
-)
+import datetime
 import pandas as pd
 import streamlit as st
 
 
-def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
-    with st.expander('필터 적용하기'):
-        df = df.copy()
-        for col in df.columns:
-            if is_object_dtype(df[col]):
-                try:
-                    df[col] = pd.to_datetime(df[col])
-                except Exception:
-                    pass
-            if is_datetime64_any_dtype(df[col]):
-                df[col] = df[col].dt.tz_localize()
-        modification_container = st.container()
+@st.cache_data(show_spinner='데이터를 필터링 중입니다.')
+def filter_dataframe(df):
+    if st.session_state['filter_selection'] == '일반 필터':
+        print('일반필터 selected')
+        combined_start_datetime = datetime.datetime.combine(
+            st.session_state['start_date'], st.session_state['start_time'])
+        combined_end_datetime = datetime.datetime.combine(
+            st.session_state['end_date'], st.session_state['end_time'])
+        selected_lines = st.session_state['selected_lines']
+        selected_stations = st.session_state['selected_stations']
 
-        with modification_container:
-            st.write('필터를 선택해주세요')
-            to_filter_column = st.multiselect(
-                "Filter Dataframe on", df.columns)
-            for column in to_filter_column:
-                left, right = st.columns((5, 20))
-                left.write(column)
-                if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
-                    user_cat_input = right.multiselect(
-                        f"Values for {column}",
-                        df[column].unique(),
-                        default=list(df[column].unique()),
-                    )
-                    df = df[df[column].isin(user_cat_input)]
+    elif st.session_state['filter_selection'] == '인공지능 필터':
+        print('인공지능 필터 selected')
+        chatbot_filter_output = st.session_state['chatbot_filter_output']
 
-                elif is_numeric_dtype(df[column]):
-                    if df[column].dtypes == 'int64':
-                        # int
-                        _min = int(df[column].min())
-                        _max = int(df[column].max())
-                        step = 1
-                    else:
-                        # float
-                        _min = float(df[column].min())
-                        _max = float(df[column].max())
-                        step = (_max - _min) / 100
-                    user_num_input = right.slider(
-                        f"Values for {column}",
-                        min_value=_min,
-                        max_value=_max,
-                        value=(_min, _max),
-                        step=step,
-                    )
-                    df = df[df[column].between(*user_num_input)]
-                else:
-                    user_text_input = right.text_input(
-                        f"Substring or regex in {column}",
-                    )
-                    if user_text_input:
-                        df = df[df[column].astype(
-                            str).str.contains(user_text_input)]
+        # chatbot_filter_output가 없다면 빈 데이터프레임을 리턴
+        if not chatbot_filter_output:
+            return pd.DataFrame()
+        print(chatbot_filter_output)
+        # 값이 없을 때 기본값 설정하기
+        # 값이 있을 때 combine 하기
+        # 여기까지
+        start_date = datetime.date(
+            chatbot_filter_output['start_date']) if chatbot_filter_output['start_date'] else st.session_state['start_date']
+        print(start_date)
 
-    return df
+        combined_start_datetime = datetime.datetime.combine(
+            chatbot_filter_output['start_date'], chatbot_filter_output['start_time'])
+        combined_end_datetime = datetime.datetime.combine(
+            chatbot_filter_output['end_date'], chatbot_filter_output['end_time'])
+
+        if chatbot_filter_output['selected_lines']:
+            selected_lines = chatbot_filter_output['selected_lines']
+        if chatbot_filter_output['selected_stations']:
+            selected_stations = chatbot_filter_output['selected_stations']
+
+    extracted_df = df[combined_start_datetime:combined_end_datetime]
+    if '전체' in selected_lines:
+        selected_lines = [1, 2, 3, 4]
+    else:
+        selected_lines = [int(i[0])
+                          for i in st.session_state['selected_lines']]
+    if 1 in selected_lines:
+        selected_lines.append(0)
+
+    # 호선 필터 적용
+
+    df_result = extracted_df.loc[(
+        extracted_df['id'] // 100).isin(selected_lines)]
+    # 역별 필터 적용
+    if '전체' not in selected_stations:
+        selected_stations = [i.split()[0]
+                             for i in selected_stations]
+        df_result = df_result.loc[df_result['name'].isin(selected_stations)]
+
+    return df_result
