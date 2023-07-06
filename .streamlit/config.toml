@@ -1,3 +1,5 @@
+[global]
+showWarningOnDirectExecution = false
 [client]
 [server]
 maxMessageSize = 500
