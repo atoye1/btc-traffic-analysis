@@ -1,7 +1,7 @@
 import streamlit as st
 import datetime
 
-from ai.parse_filter import get_json_result
+from ai.generate_data_filter import generate_data_filter
 
 
 def render_normal_filter(df):
@@ -56,6 +56,7 @@ def render_normal_filter(df):
     selected_stations_option = []
 
     for key, val in st.session_state['station_dict'].items():
+        # TODO 여기도 역별 메타데이터 테이블을 따로 관리해서, 거기서 정보를 추출한다. 주소, 호선, 환승역, 근무인원, 관리역 여부 등을 관리하는 테이블을 만든다.
         if key // 100 in selected_lines:
             selected_stations_option.append(
                 val + ' (' + str(key) + ')')
@@ -70,20 +71,35 @@ def render_normal_filter(df):
     st.write('### 3. 승하차 선택')
     selected_onoffs = st.selectbox(
         label='승하차',
-        options=['전체', '승차만', '하차만'],
-        key='on_offs'
+        options=['전체', '승차', '하차'],
+        key='on_off'
     )
     pass
 
 
 def render_ai_filter(df):
-    st.text_input('메시지', key='chatbot_filter_input')
+    with st.expander('인공지능 필터 사용법이 궁금하면 클릭하세요'):
+        st.markdown("### 소개")
+        st.markdown("인공지능 모델을 통해 자연어로 데이터를 필터링할 수 있습니다.")
+        st.markdown("모델은 입력받은 자연어를 json형식으로 파싱하고, 앱에 전달합니다.")
+        st.markdown("앱은 이를 기반으로 데이터를 필터링해서 보여줍니다.")
+
+        st.markdown("### 예시")
+        st.warning("기간, 역명등을 지정하지 않으면 전체를 대상으로 데이터를 필터합니다.")
+        st.markdown("1. 하단역")
+        st.markdown("2. 1호선 모든 역의 승차데이터를 찾아줘")
+        st.markdown("3. 환승역의 지난 1년간 20시부터 22시까지의 승하차 데이터를 찾아줘")
+        # TODO: prompt bug
+        st.markdown(
+            "4. 2022년 1월1일 부터 일주일간 3호선 모든 역과, 하단, 민락, 센텀시티, 서면, 연산, 장전역의 출근시간 승차데이터를 조회해줘")
+
+    st.text_input('아래에 명령어를 입력하세요 👇', key='chatbot_filter_input')
     if st.session_state['chatbot_filter_input']:
-        parsed_json = get_json_result(
+        generated_filter = generate_data_filter(
             df, st.session_state['chatbot_filter_input'])
-        st.success('✨' + parsed_json['input_summary'])
-        st.json(parsed_json)
-        st.session_state['chatbot_filter_output'] = parsed_json
+        st.success('✨' + generated_filter['input_summary'])
+        st.json(generated_filter)
+        st.session_state['chatbot_filter_output'] = generated_filter
         # 인공지능의 아웃풋으로 얻은 json을 세션스테이트에 저장
     else:
         st.session_state['chatbot_filter_output'] = {}
@@ -93,7 +109,7 @@ def render_ai_filter(df):
 def render_sidebar(df):
     with st.sidebar:
         st.sidebar.title("데이터 필터")
-        st.write('UI를 활용한 필터와 인공지능을 활용한 필터를 활용가능합니다.')
+        st.write('필터를 선택하세요!')
         st.radio('필터 선택', horizontal=True, options=[
             '일반 필터', '인공지능 필터'], key='filter_selection')
         if st.session_state['filter_selection'] == '일반 필터':
