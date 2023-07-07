@@ -20,7 +20,8 @@ from pyxlsb import open_workbook as open_xlsb
 
 @st.cache_data(show_spinner='다운로드 가능한 파일을 생성중입니다.')
 def generate_csv_binary(df: pd.DataFrame):
-    file_binary = df.to_csv(index=False)
+    downloadable_df = df.reset_index()
+    file_binary = downloadable_df.to_csv(index=False)
     # strings <-> bytes conversions
     b64 = base64.b64encode(file_binary.encode()).decode()
     return file_binary
