@@ -27,3 +27,22 @@ def init_session_states():
         st.session_state['chatbot_filter_output'] = DEFAULT_CHATBOT_FILTER_OUTPUT
     if 'station_dict' not in st.session_state:
         st.session_state['station_dict'] = station_id_dict
+    if 'chat_history' not in st.session_state:
+        st.session_state['chat_history'] = [
+            '안녕하세요, 필터링된 데이터에 관해 궁금한 내용을 입력해주세요.']
+    if 'generated' not in st.session_state:
+        st.session_state['generated'] = []
+    if 'past' not in st.session_state:
+        st.session_state['past'] = []
+    if 'messages' not in st.session_state:
+        st.session_state['messages'] = [
+            {"role": "system", "content": "You are a helpful assistant."}
+        ]
+    if 'model_name' not in st.session_state:
+        st.session_state['model_name'] = []
+    if 'cost' not in st.session_state:
+        st.session_state['cost'] = []
+    if 'total_tokens' not in st.session_state:
+        st.session_state['total_tokens'] = []
+    if 'total_cost' not in st.session_state:
+        st.session_state['total_cost'] = 0.0

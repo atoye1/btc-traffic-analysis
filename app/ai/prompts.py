@@ -1,5 +1,8 @@
 import datetime
 
+# TODO: use langchain prompt class, and use it to generate prompts
+# TODO : use external database for stations and lines info
+
 
 def generate_parse_filter_prompt(df):
     return f"""
