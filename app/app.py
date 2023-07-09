@@ -1,5 +1,6 @@
+from dotenv import load_dotenv
+import os
 import streamlit as st
-import pandas as pd
 import warnings
 
 from components.data_tab import render_data_tab
@@ -12,6 +13,8 @@ from components.chat_tab import render_chat_tab
 from utils.load_raw_data import load_raw_data
 from utils.filter_dataframe import filter_dataframe
 
+# print(load_dotenv(dotenv_path=os.getcwd() + '/.env'))
+load_dotenv()
 
 warnings.filterwarnings('ignore')
 

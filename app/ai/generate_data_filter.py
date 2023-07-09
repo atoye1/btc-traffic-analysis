@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 
 from ai.prompts import generate_parse_filter_prompt
 
-_ = load_dotenv(find_dotenv())  # read local .env file
+load_dotenv()
 openai.api_key = os.environ['OPENAI_API_KEY']
 
 
