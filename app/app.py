@@ -26,7 +26,6 @@ st.set_page_config(
 
 init_session_states()
 
-df_raw = load_raw_data()
 
 # sidebar section
 render_sidebar(df_raw)
@@ -41,6 +40,7 @@ st.write('1. 왼쪽의 사이드바에서 조회하고 싶은 데이터의 기�
 st.write('2. 또는 인공지능 필터를 선택하고, 자연어로 조회하고 싶은 데이터를 입력합니다.')
 st.write('3. 필터링된 데이터를 확인하고, 아래의 탭을 탐색해보세요')
 
+df_raw = load_raw_data()
 # st.cache_data 를 적용하기 위해 세션에 저장된 값을 각각 전달.
 df_filtered = filter_dataframe(df=df_raw,
                                filter_selection=st.session_state['filter_selection'],
